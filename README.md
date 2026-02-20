@@ -1,16 +1,33 @@
-# ai-context-bridge (`ctx`)
-
-**Switch between AI coding tools without losing context.** Autonomous, always-ready context that survives rate limits.
+<p align="center">
+  <h1 align="center">ai-context-bridge</h1>
+  <p align="center">
+    <strong>Switch between AI coding tools without losing context.</strong><br>
+    Autonomous, always-ready context that survives rate limits.
+  </p>
+  <p align="center">
+    <a href="https://www.npmjs.com/package/ai-context-bridge"><img src="https://img.shields.io/npm/v/ai-context-bridge.svg" alt="npm version"></a>
+    <a href="https://www.npmjs.com/package/ai-context-bridge"><img src="https://img.shields.io/npm/dm/ai-context-bridge.svg" alt="npm downloads"></a>
+    <a href="https://github.com/himanshuskukla/ai-context-bridge/actions"><img src="https://github.com/himanshuskukla/ai-context-bridge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+    <a href="https://github.com/himanshuskukla/ai-context-bridge/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/ai-context-bridge.svg" alt="license"></a>
+    <img src="https://img.shields.io/badge/dependencies-0-brightgreen" alt="zero dependencies">
+  </p>
+</p>
 
 ```bash
 npm i -g ai-context-bridge
 ```
 
+<p align="center">
+  <img src="docs/rate-limit.gif" alt="Rate limit recovery demo" width="600">
+</p>
+
 ## The Problem
 
-You're deep in a coding session with Claude Code. Rate limit hits. You **can't even run a save command** — the session is dead. Switch to Cursor? You'd have to re-explain everything from scratch.
+You're deep in a coding session with Claude Code. **Rate limit hits.** You can't even run a save command — the session is dead. Switch to Cursor? You'd have to re-explain everything from scratch.
 
-Working on multiple projects side by side? Every tool has its own config format. Context doesn't transfer. 45% of developers spend more time debugging AI code than expected, largely due to context loss.
+Working on multiple projects side by side? Every tool has its own config format. Context doesn't transfer.
+
+**45% of developers spend more time debugging AI code than expected**, largely due to context loss.
 
 ## The Solution
 
@@ -41,9 +58,9 @@ ctx switch cursor    # Saves session + generates Cursor config + copies resume p
 
 ### The Rate Limit Scenario (Solved)
 
-**Before ctx**: Rate limit hits → session dead → open Cursor → re-explain everything → 15 min wasted
+**Before ctx**: Rate limit hits → session dead → open Cursor → re-explain everything → **15 min wasted**
 
-**With ctx**: Rate limit hits → open `.ctx/resume-prompts/cursor.md` → paste into Cursor → keep working in 10 seconds
+**With ctx**: Rate limit hits → open `.ctx/resume-prompts/cursor.md` → paste into Cursor → **keep working in 10 seconds**
 
 ## Supported Tools (11)
 
@@ -64,26 +81,35 @@ ctx switch cursor    # Saves session + generates Cursor config + copies resume p
 ## Quick Start
 
 ```bash
-# 1. Initialize (auto-installs hooks, registers project, pre-generates everything)
+# 1. Install globally
+npm i -g ai-context-bridge
+
+# 2. Initialize in your project (auto-installs hooks, pre-generates everything)
 cd my-project
 ctx init
 
-# 2. Edit your project rules (shared across all tools)
-# Edit .ctx/rules/01-project.md
+# 3. Work normally. Context auto-saves on every commit.
 
-# 3. (Optional) Start background watcher for continuous updates
-ctx watch
-
-# 4. Work normally. Context auto-saves on every commit.
-
-# 5. When rate limit hits, your resume prompts are already ready:
+# 4. When rate limit hits, your resume prompts are already ready:
 #    .ctx/resume-prompts/cursor.md
 #    .ctx/resume-prompts/codex.md
+#    .ctx/resume-prompts/claude.md
 #    ...
 
-# 6. Or manually switch:
+# 5. Or manually switch:
 ctx switch cursor
 ```
+
+<details>
+<summary><strong>See it in action</strong></summary>
+
+### ctx init
+<img src="docs/init.gif" alt="ctx init demo" width="600">
+
+### ctx switch
+<img src="docs/switch.gif" alt="ctx switch demo" width="600">
+
+</details>
 
 ## Multi-Project Support
 
@@ -169,8 +195,6 @@ Projects (2)
 | **Git** (default) | Git hooks + watcher | On commit/checkout/merge |
 | **Local** | No git, just `.ctx/` dir | `ctx watch` or manual `ctx save` |
 
-Install via `npm i -g ai-context-bridge`. No forking needed. Your `.ctx/` data stays local in each project.
-
 ### Token-Aware Compilation
 
 Each tool has different size limits. `ctx` compiles your rules + session to fit:
@@ -186,29 +210,53 @@ Zero production dependencies. Only Node.js built-ins:
 
 Fast startup. No native compilation. No bloat.
 
+## Why Not Just Use Ruler?
+
+[Ruler](https://github.com/intellectronica/ruler) is a great tool for syncing rules across AI coding tools. But it only handles **rules** — static project conventions.
+
+`ai-context-bridge` goes further:
+
+| Feature | ai-context-bridge | Ruler |
+|---------|------------------|-------|
+| Rules sync | Yes | Yes |
+| **Session context** (what you're working on, decisions made) | **Yes** | No |
+| **Survives rate limits** (pre-generated resume prompts) | **Yes** | No |
+| **Autonomous** (git hooks, zero commands needed) | **Yes** | No |
+| **Multi-project dashboard** | **Yes** | No |
+| **Token-aware compilation** (respects per-tool limits) | **Yes** | No |
+| Zero dependencies | Yes | Yes |
+| Tools supported | 11 | 11 |
+
+**Use Ruler if** you just need to sync coding rules. **Use ctx if** you switch between tools mid-session, hit rate limits, or work on multiple projects.
+
 ## Comparison
 
-| Feature | ctx | ContextPilot | ai-rules-sync | SaveContext |
-|---------|-----|-------------|---------------|------------|
-| Autonomous auto-save | Yes (hooks + watcher) | No | No | No |
-| Survives rate limits | Yes (pre-generated) | No | No | No |
-| Multi-project dashboard | Yes | No | No | No |
-| Token-aware compilation | Yes | No | No | No |
-| Zero dependencies | Yes | No | No | No |
-| Quick-switch command | `ctx switch` | No | No | No |
-| Rules sync | Yes | Yes | Yes | No |
-| Tools supported | 11 | 5 | 6 | 4 |
-| Works without git | Yes | No | N/A | No |
+| Feature | ctx | Ruler | ai-rulez | ContextPilot | SaveContext |
+|---------|-----|-------|----------|-------------|------------|
+| Autonomous auto-save | Yes | No | No | No | No |
+| Survives rate limits | Yes | No | No | No | No |
+| Session handoff | Yes | No | No | Basic | Yes |
+| Multi-project dashboard | Yes | No | No | No | No |
+| Token-aware compilation | Yes | No | No | No | No |
+| Zero dependencies | Yes | Yes | No | No | No |
+| Quick-switch command | `ctx switch` | No | No | No | No |
+| Rules sync | Yes | Yes | Yes | Yes | No |
+| Tools supported | 11 | 11 | 18 | 5 | 4 |
+| Works without git | Yes | No | No | No | No |
 
 ## Development
 
 ```bash
-git clone https://github.com/himanshuskukla/ctxswitch
-cd ctxswitch
+git clone https://github.com/himanshuskukla/ai-context-bridge
+cd ai-context-bridge
 npm install
 npm run build
 npm test          # 103 tests
 ```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guide and adapter development instructions.
 
 ## License
 

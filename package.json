@@ -33,9 +33,26 @@
     "cli",
     "developer-tools",
     "ai-coding",
-    "context-switching"
+    "context-switching",
+    "ai-rules",
+    "cursorrules",
+    "claude-md",
+    "copilot-instructions",
+    "coding-agent",
+    "vibe-coding",
+    "rate-limit",
+    "session",
+    "context-engineering"
   ],
-  "author": "",
+  "author": "Himanshu Shukla <himanshu.shukla2011@gmail.com>",
+  "homepage": "https://github.com/himanshuskukla/ai-context-bridge#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/himanshuskukla/ai-context-bridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/himanshuskukla/ai-context-bridge/issues"
+  },
   "license": "MIT",
   "devDependencies": {
     "tsup": "^8.4.0",
