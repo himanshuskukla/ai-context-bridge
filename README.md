@@ -32,13 +32,14 @@ Working on multiple projects side by side? Every tool has its own config format.
 ## The Solution
 
 ```bash
-ctx init   # One-time setup: installs git hooks, pre-generates everything
+ctx init              # Private repos: stores context in .ctx/ inside the project
+ctx init --external   # Public repos: stores context in ~/.ctx-global/ (zero files in repo)
 ```
 
 **That's it.** From now on, your context is **always ready**:
 
 - Git hooks auto-save on every commit, checkout, and merge
-- Resume prompts for all 11 tools sit ready at `.ctx/resume-prompts/<tool>.md`
+- Resume prompts for all 11 tools sit ready (`.ctx/resume-prompts/` or `~/.ctx-global/projects/<name>/resume-prompts/`)
 - When a rate limit hits, just open the file and paste into your next tool
 
 For manual switching:
@@ -86,12 +87,14 @@ npm i -g ai-context-bridge
 
 # 2. Initialize in your project (auto-installs hooks, pre-generates everything)
 cd my-project
-ctx init
+ctx init                # Private repo: .ctx/ inside the project
+# OR
+ctx init --external     # Public repo: zero files in the project, data in ~/.ctx-global/
 
 # 3. Work normally. Context auto-saves on every commit.
 
 # 4. When rate limit hits, your resume prompts are already ready:
-#    .ctx/resume-prompts/cursor.md
+#    .ctx/resume-prompts/cursor.md  (or ~/.ctx-global/projects/<name>/resume-prompts/)
 #    .ctx/resume-prompts/codex.md
 #    .ctx/resume-prompts/claude.md
 #    ...
@@ -111,14 +114,27 @@ ctx switch cursor
 
 </details>
 
+## External Storage (Public Repos)
+
+Working on a public or open-source repo? Use `--external` to keep zero ctx files in the project:
+
+```bash
+cd ~/my-open-source-project
+ctx init --external
+```
+
+All ctx data (config, rules, sessions, resume prompts) is stored at `~/.ctx-global/projects/<project-name>/` instead of `.ctx/` inside the project. Git hooks still work — they live in `.git/hooks/` which git never pushes.
+
+This prevents accidentally pushing session data with `git add .`. All commands (`ctx status`, `ctx switch`, `ctx save`, etc.) work identically — the path resolution is automatic.
+
 ## Multi-Project Support
 
 Working on multiple projects? `ctx` tracks them all:
 
 ```bash
-# Each project gets its own .ctx/ (auto-registered on init)
+# Each project gets its own context (auto-registered on init)
 cd ~/project-a && ctx init
-cd ~/project-b && ctx init
+cd ~/project-b && ctx init --external   # mix and match modes
 
 # See all your projects in one place
 ctx projects list
@@ -142,7 +158,7 @@ Projects (2)
 
 | Command | Description |
 |---------|-------------|
-| `ctx init` | Initialize + hooks + global registry + pre-generate |
+| `ctx init [--external]` | Initialize + hooks + global registry + pre-generate |
 | `ctx save [message]` | Manual session snapshot |
 | `ctx resume --tool <name>` | Generate config + resume prompt for target tool |
 | `ctx switch <tool> [msg]` | Save + resume in one step |
@@ -157,6 +173,7 @@ Projects (2)
 
 ### Flags
 
+- `--external` — Store ctx data outside the project (for public repos)
 - `--dry-run` — Preview changes without writing
 - `--verbose` — Detailed output
 - `--quiet` / `-q` — Minimal output
@@ -184,16 +201,20 @@ Projects (2)
     ...
 ```
 
-- **Rules** → git-tracked, shared with team
+- **Rules** → git-tracked, shared with team (internal mode)
 - **Sessions + resume prompts** → gitignored, personal/ephemeral
+- **External mode** (`--external`) → same structure at `~/.ctx-global/projects/<name>/`, zero files in project
 - **No git?** Works fine as local directory mode — just no auto-hooks
 
 ### Storage Options
 
 | Mode | How | Auto-Save |
 |------|-----|-----------|
-| **Git** (default) | Git hooks + watcher | On commit/checkout/merge |
+| **Git** (default) | Git hooks + watcher, `.ctx/` in project | On commit/checkout/merge |
+| **External** (`--external`) | Git hooks + watcher, data in `~/.ctx-global/` | On commit/checkout/merge |
 | **Local** | No git, just `.ctx/` dir | `ctx watch` or manual `ctx save` |
+
+Use **External** for public/open-source repos where you want zero ctx files in the project directory.
 
 ### Token-Aware Compilation
 
@@ -222,6 +243,7 @@ Fast startup. No native compilation. No bloat.
 | **Session context** (what you're working on, decisions made) | **Yes** | No |
 | **Survives rate limits** (pre-generated resume prompts) | **Yes** | No |
 | **Autonomous** (git hooks, zero commands needed) | **Yes** | No |
+| **External storage** (zero files in public repos) | **Yes** | No |
 | **Multi-project dashboard** | **Yes** | No |
 | **Token-aware compilation** (respects per-tool limits) | **Yes** | No |
 | Zero dependencies | Yes | Yes |
@@ -236,6 +258,7 @@ Fast startup. No native compilation. No bloat.
 | Autonomous auto-save | Yes | No | No | No | No |
 | Survives rate limits | Yes | No | No | No | No |
 | Session handoff | Yes | No | No | Basic | Yes |
+| External storage (public repos) | Yes | No | No | No | No |
 | Multi-project dashboard | Yes | No | No | No | No |
 | Token-aware compilation | Yes | No | No | No | No |
 | Zero dependencies | Yes | Yes | No | No | No |
@@ -251,7 +274,7 @@ git clone https://github.com/himanshuskukla/ai-context-bridge
 cd ai-context-bridge
 npm install
 npm run build
-npm test          # 103 tests
+npm test          # 115 tests
 ```
 
 ## Contributing
