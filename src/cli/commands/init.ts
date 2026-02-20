@@ -3,9 +3,12 @@ import { initCtxDir, findCtxRoot } from '../../core/config.js';
 import { getAllAdapters } from '../../adapters/registry.js';
 import { addRule } from '../../core/rules.js';
 import { isGitRepo } from '../../core/git.js';
+import { installHooks } from '../../core/hooks.js';
+import { registerProject } from '../../core/global.js';
+import { autoRefresh } from '../../core/live.js';
 import { log } from '../../utils/logger.js';
 
-export async function initCommand(args: { import?: boolean }): Promise<void> {
+export async function initCommand(args: { import?: boolean; noHooks?: boolean }): Promise<void> {
   const cwd = process.cwd();
 
   // Check if already initialized
@@ -19,12 +22,34 @@ export async function initCommand(args: { import?: boolean }): Promise<void> {
   const ctxDir = await initCtxDir(cwd);
   log.success(`Initialized .ctx/ in ${cwd}`);
 
-  // Check git
+  // Check git and install hooks automatically
   const isGit = await isGitRepo(cwd);
   if (isGit) {
     log.info('  Git repo detected — sessions will be organized by branch.');
+
+    // Auto-install git hooks unless opted out
+    if (!args.noHooks) {
+      try {
+        const installed = await installHooks(cwd);
+        if (installed.length > 0) {
+          log.success(`Auto-installed git hooks: ${installed.join(', ')}`);
+          log.dim('  Context auto-saves on commit/checkout/merge. Disable with: ctx hooks uninstall');
+        }
+      } catch {
+        log.dim('  Could not install git hooks (non-fatal).');
+      }
+    }
   } else {
     log.dim('  Not a git repo — sessions will use "main" as default branch.');
+    log.dim('  Storage mode: local directory (no git features).');
+  }
+
+  // Register in global project registry
+  try {
+    await registerProject(cwd);
+    log.success('Registered in global project registry (~/.ctx-global/)');
+  } catch {
+    // non-fatal
   }
 
   // Auto-import existing tool configs
@@ -70,10 +95,24 @@ export async function initCommand(args: { import?: boolean }): Promise<void> {
     // Rule already exists from import
   }
 
-  log.header('Next steps');
-  log.info('  1. Edit .ctx/rules/01-project.md with your project context');
-  log.info('  2. Run `ctx save "starting work"` to create your first session');
-  log.info('  3. Run `ctx switch <tool>` when you need to switch AI tools');
+  // Create initial live session + pre-generate resume prompts
+  try {
+    const { resumeCount } = await autoRefresh({ cwd });
+    log.success(`Pre-generated ${resumeCount} resume prompts (always ready in .ctx/resume-prompts/)`);
+  } catch {
+    // non-fatal
+  }
+
+  log.header('Autonomous features enabled');
+  if (isGit && !args.noHooks) {
+    log.info('  Git hooks: auto-save context on commit/checkout/merge');
+  }
+  log.info('  Live session: .ctx/sessions/live.json (always current)');
+  log.info('  Resume prompts: .ctx/resume-prompts/<tool>.md (pre-generated)');
   log.info('');
-  log.dim('  Tip: Add .ctx/rules/ to git, .ctx/sessions/ is already gitignored.');
+  log.info('  When a rate limit hits, your context is ALREADY saved.');
+  log.info('  Just open .ctx/resume-prompts/cursor.md and paste into Cursor.');
+  log.info('');
+  log.dim('  Optional: run `ctx watch` for continuous background updates.');
+  log.dim('  Optional: run `ctx projects list` to see all your projects.');
 }

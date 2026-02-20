@@ -102,7 +102,7 @@ export async function initCtxDir(projectDir: string): Promise<string> {
   try {
     await fs.access(gitignorePath);
   } catch {
-    await fs.writeFile(gitignorePath, 'sessions/\n');
+    await fs.writeFile(gitignorePath, 'sessions/\nresume-prompts/\nwatcher.pid\n');
   }
 
   return ctxDir;

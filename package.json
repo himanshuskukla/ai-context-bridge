@@ -1,6 +1,6 @@
 {
   "name": "ai-context-bridge",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Cross-AI-tool context portability CLI. Switch between Claude Code, Cursor, Copilot, Codex, Windsurf, Cline, and more without losing context.",
   "type": "module",
   "bin": {

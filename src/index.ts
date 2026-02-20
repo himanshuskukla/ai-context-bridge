@@ -2,25 +2,34 @@ import { parseArgs } from 'node:util';
 import { setLogLevel } from './utils/logger.js';
 import { log } from './utils/logger.js';
 
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 
 const HELP = `
 ai-context-bridge (ctx) v${VERSION}
-Cross-AI-tool context portability CLI
+Cross-AI-tool context portability CLI — autonomous edition
 
 USAGE
   ctx <command> [options]
 
 COMMANDS
-  init                    Initialize .ctx/ in current project
+  init                    Initialize .ctx/ + git hooks + global registry
   save [message]          Save current session state
   resume --tool <name>    Generate config + resume prompt for target tool
   switch <tool> [message] Save session + generate config in one step
   sync [--tools ...]      Generate config files for all enabled tools
   status                  Show current session, branch, rules
+  watch                   Start background watcher (continuous auto-save)
+  hooks install|uninstall|status  Manage git hooks for auto-save
+  projects list|remove    Multi-project dashboard
   session list|show|delete  Manage saved sessions
   rules add|list|delete|validate  Manage rule files
   tools list|check        Show supported tools, detect installed ones
+
+AUTONOMOUS FEATURES
+  Git hooks auto-save context on every commit, checkout, and merge.
+  Resume prompts are pre-generated and always ready at:
+    .ctx/resume-prompts/<tool>.md
+  When a rate limit hits, your context is ALREADY saved.
 
 OPTIONS
   --help, -h              Show this help
@@ -36,12 +45,13 @@ SUPPORTED TOOLS
   aider, continue, amazonq, zed, antigravity
 
 EXAMPLES
-  ctx init                        # Set up .ctx/ in your project
+  ctx init                        # Set up with auto-save + hooks
   ctx save "implementing auth"    # Save session snapshot
   ctx switch cursor               # Save + generate Cursor config + copy prompt
+  ctx watch                       # Start background auto-save watcher
+  ctx projects list               # See all your projects and their status
   ctx resume --tool codex         # Generate Codex config from latest session
   ctx sync                        # Generate configs for all enabled tools
-  ctx rules validate              # Check rules fit within tool budgets
 `;
 
 async function main(): Promise<void> {
@@ -96,13 +106,13 @@ async function main(): Promise<void> {
       case 'init': {
         const { initCommand } = await import('./cli/commands/init.js');
         const noImport = filteredRest.includes('--no-import');
-        await initCommand({ import: !noImport });
+        const noHooks = filteredRest.includes('--no-hooks');
+        await initCommand({ import: !noImport, noHooks });
         break;
       }
 
       case 'save': {
         const { saveCommand } = await import('./cli/commands/save.js');
-        // Collect --decisions and --next-steps flags
         let message = '';
         let tool: string | undefined;
         const decisions: string[] = [];
@@ -187,6 +197,53 @@ async function main(): Promise<void> {
       case 'status': {
         const { statusCommand } = await import('./cli/commands/status.js');
         await statusCommand();
+        break;
+      }
+
+      case 'watch': {
+        const { watchCommand } = await import('./cli/commands/watch.js');
+        let interval: number | undefined;
+        let noFileWatch = false;
+
+        for (let i = 0; i < filteredRest.length; i++) {
+          if (filteredRest[i] === '--interval' && filteredRest[i + 1]) {
+            interval = parseInt(filteredRest[++i], 10);
+          } else if (filteredRest[i] === '--no-file-watch') {
+            noFileWatch = true;
+          }
+        }
+
+        await watchCommand({ interval, noFileWatch });
+        break;
+      }
+
+      case 'hooks': {
+        const { hooksCommand } = await import('./cli/commands/hooks.js');
+        const subcommand = filteredRest[0] || 'status';
+        await hooksCommand({ subcommand });
+        break;
+      }
+
+      case 'projects': {
+        const { projectsCommand } = await import('./cli/commands/projects.js');
+        const subcommand = filteredRest[0] || 'list';
+        const projectPath = filteredRest[1];
+        await projectsCommand({ subcommand, projectPath });
+        break;
+      }
+
+      // Hidden command: called by git hooks silently
+      case 'auto-refresh': {
+        const { autoRefresh } = await import('./core/live.js');
+        try {
+          const { touchProject } = await import('./core/global.js');
+          const { getProjectRoot } = await import('./core/config.js');
+          const { session } = await autoRefresh();
+          const root = await getProjectRoot();
+          await touchProject(root, session.task);
+        } catch {
+          // Silent failure — this runs from git hooks
+        }
         break;
       }
 

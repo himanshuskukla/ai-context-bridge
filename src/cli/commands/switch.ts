@@ -5,6 +5,8 @@ import { getBranch, autoDetectContext } from '../../core/git.js';
 import { copyToClipboard } from '../../core/clipboard.js';
 import { compile } from '../../core/compiler.js';
 import { getProjectRoot } from '../../core/config.js';
+import { autoRefresh } from '../../core/live.js';
+import { touchProject } from '../../core/global.js';
 import { log } from '../../utils/logger.js';
 import { formatChars } from '../../utils/chars.js';
 import * as fs from 'node:fs/promises';
@@ -87,5 +89,13 @@ export async function switchCommand(args: {
   } else {
     log.warn('Could not copy to clipboard. Resume prompt:');
     console.log('\n---\n' + compiled.resumePrompt + '\n---\n');
+  }
+
+  // Update live session and global registry
+  try {
+    await autoRefresh({ task });
+    await touchProject(projectRoot, task);
+  } catch {
+    // non-fatal
   }
 }
