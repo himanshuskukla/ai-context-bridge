@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { getProjectRoot, getCtxDir } from './config.js';
+import { getProjectRoot, getCtxDir, CTX_DIR } from './config.js';
 import { autoRefresh } from './live.js';
 import { log } from '../utils/logger.js';
 
@@ -40,11 +40,17 @@ export async function startWatcher(opts: WatcherOptions = {}): Promise<void> {
   if (onChange) {
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
+    // Determine the ctx dir name relative to the project root for filtering
+    // In internal mode this is '.ctx', in external mode the ctxDir is outside the project entirely
+    const isCtxInternal = ctxDir.startsWith(projectRoot);
+    const ctxDirName = isCtxInternal ? path.relative(projectRoot, ctxDir).split(path.sep)[0] : null;
+
     try {
       fsWatcher = fs.watch(projectRoot, { recursive: true }, (eventType, filename) => {
-        // Ignore changes inside .ctx/ and .git/ and node_modules/
+        // Ignore changes inside .ctx/ (internal mode), .git/, and node_modules/
         if (!filename) return;
-        if (filename.startsWith('.ctx') || filename.startsWith('.git') || filename.includes('node_modules')) return;
+        if (filename.startsWith('.git') || filename.includes('node_modules')) return;
+        if (ctxDirName && filename.startsWith(ctxDirName)) return;
 
         // Debounce: wait 2 seconds after last change before refreshing
         if (debounceTimer) clearTimeout(debounceTimer);

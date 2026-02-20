@@ -1,4 +1,4 @@
-import { readConfig } from '../../core/config.js';
+import { readConfig, getCtxDir } from '../../core/config.js';
 import { readRules } from '../../core/rules.js';
 import { getLatestSession, listSessions } from '../../core/session.js';
 import { readLiveSession } from '../../core/live.js';
@@ -10,16 +10,21 @@ import { formatChars } from '../../utils/chars.js';
 
 export async function statusCommand(): Promise<void> {
   const config = await readConfig();
+  const ctxDir = await getCtxDir();
 
   // Git info
   const gitEnabled = await isGitRepo();
   const branch = await getBranch();
   const hash = await getHeadHash();
 
+  // Determine storage display
+  const isExternal = !ctxDir.includes('.ctx') || ctxDir.includes('.ctx-global');
+  const storageDisplay = isExternal ? `external (${ctxDir})` : gitEnabled ? 'git' : 'local directory';
+
   log.header('Project Status');
   log.table([
     ['Git', gitEnabled ? `${branch || 'unknown'} (${hash || 'no commits'})` : 'not a git repo'],
-    ['Storage', gitEnabled ? 'git' : 'local directory'],
+    ['Storage', storageDisplay],
     ['Default tool', config.defaultTool || 'none'],
     ['Enabled tools', config.enabledTools.join(', ')],
   ]);
@@ -34,7 +39,7 @@ export async function statusCommand(): Promise<void> {
     ['Git hooks', hooksStatus.installed.length > 0 ? `active (${hooksStatus.installed.join(', ')})` : 'not installed'],
     ['Watcher', watcherRunning ? 'running' : 'stopped'],
     ['Live session', live ? `ready (${live.timestamp})` : 'none'],
-    ['Resume prompts', live ? 'pre-generated in .ctx/resume-prompts/' : 'not available'],
+    ['Resume prompts', live ? `pre-generated in ${ctxDir}/resume-prompts/` : 'not available'],
   ]);
 
   if (!hooksStatus.installed.length && !watcherRunning) {

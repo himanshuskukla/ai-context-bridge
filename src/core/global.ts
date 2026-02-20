@@ -17,7 +17,8 @@ export interface ProjectEntry {
   lastActive: string;
   branch: string | null;
   task: string | null;
-  storage: 'git' | 'local';
+  storage: 'git' | 'local' | 'external';
+  ctxPath?: string;  // Only set for external mode — absolute path to ctx data dir
 }
 
 export interface GlobalRegistry {
@@ -56,13 +57,24 @@ async function writeRegistry(registry: GlobalRegistry): Promise<void> {
 }
 
 /** Register a project in the global registry. Called by `ctx init`. */
-export async function registerProject(projectPath: string): Promise<void> {
+export async function registerProject(
+  projectPath: string,
+  opts?: { external?: boolean; ctxPath?: string },
+): Promise<void> {
   const registry = await readRegistry();
   const absPath = path.resolve(projectPath);
   const name = path.basename(absPath);
 
   const isGit = await isGitRepo(absPath);
   const branch = await getBranch(absPath);
+
+  // Determine storage mode
+  let storage: ProjectEntry['storage'];
+  if (opts?.external) {
+    storage = 'external';
+  } else {
+    storage = isGit ? 'git' : 'local';
+  }
 
   // Update if exists, add if new
   const existing = registry.projects.findIndex((p) => p.path === absPath);
@@ -72,7 +84,8 @@ export async function registerProject(projectPath: string): Promise<void> {
     lastActive: new Date().toISOString(),
     branch,
     task: null,
-    storage: isGit ? 'git' : 'local',
+    storage,
+    ...(opts?.ctxPath ? { ctxPath: opts.ctxPath } : {}),
   };
 
   if (existing >= 0) {
@@ -112,6 +125,29 @@ export async function unregisterProject(projectPath: string): Promise<boolean> {
 }
 
 /**
+ * Resolve the ctx data directory for a given project.
+ * For external projects, returns the ctxPath from registry.
+ * For internal projects, returns <projectPath>/.ctx.
+ */
+export async function getProjectCtxPath(projectPath: string): Promise<string> {
+  const absPath = path.resolve(projectPath);
+  const registry = await readRegistry();
+  const entry = registry.projects.find((p) => p.path === absPath);
+
+  if (entry?.storage === 'external' && entry.ctxPath) {
+    return entry.ctxPath;
+  }
+
+  // Fall back to internal .ctx/ (or check findCtxRoot)
+  const ctxRoot = await findCtxRoot(projectPath);
+  if (ctxRoot) {
+    return path.join(ctxRoot, '.ctx');
+  }
+
+  return path.join(absPath, '.ctx');
+}
+
+/**
  * List all registered projects with their current status.
  * Enriches each entry with live session data if available.
  */
@@ -130,11 +166,16 @@ export async function listProjects(): Promise<(ProjectEntry & {
       await fs.access(project.path);
       exists = true;
 
-      // Check if .ctx/ still exists
-      const ctxRoot = await findCtxRoot(project.path);
-      if (ctxRoot) {
-        // Try to read live session (we need to be careful about cwd)
-        const livePath = path.join(ctxRoot, '.ctx', 'sessions', 'live.json');
+      // Resolve the ctx data path (supports both internal and external)
+      const ctxPath = project.storage === 'external' && project.ctxPath
+        ? project.ctxPath
+        : await (async () => {
+            const ctxRoot = await findCtxRoot(project.path);
+            return ctxRoot ? path.join(ctxRoot, '.ctx') : null;
+          })();
+
+      if (ctxPath) {
+        const livePath = path.join(ctxPath, 'sessions', 'live.json');
         try {
           await fs.access(livePath);
           hasLiveSession = true;

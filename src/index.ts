@@ -12,7 +12,7 @@ USAGE
   ctx <command> [options]
 
 COMMANDS
-  init                    Initialize .ctx/ + git hooks + global registry
+  init [--external]       Initialize ctx + git hooks + global registry
   save [message]          Save current session state
   resume --tool <name>    Generate config + resume prompt for target tool
   switch <tool> [message] Save session + generate config in one step
@@ -45,7 +45,8 @@ SUPPORTED TOOLS
   aider, continue, amazonq, zed, antigravity
 
 EXAMPLES
-  ctx init                        # Set up with auto-save + hooks
+  ctx init                        # Set up with .ctx/ inside the project
+  ctx init --external             # Store ctx data outside the project (for public repos)
   ctx save "implementing auth"    # Save session snapshot
   ctx switch cursor               # Save + generate Cursor config + copy prompt
   ctx watch                       # Start background auto-save watcher
@@ -107,7 +108,8 @@ async function main(): Promise<void> {
         const { initCommand } = await import('./cli/commands/init.js');
         const noImport = filteredRest.includes('--no-import');
         const noHooks = filteredRest.includes('--no-hooks');
-        await initCommand({ import: !noImport, noHooks });
+        const external = filteredRest.includes('--external');
+        await initCommand({ import: !noImport, noHooks, external });
         break;
       }
 
