@@ -1,0 +1,49 @@
+{
+  "name": "ai-context-bridge",
+  "version": "0.1.0",
+  "description": "Cross-AI-tool context portability CLI. Switch between Claude Code, Cursor, Copilot, Codex, Windsurf, Cline, and more without losing context.",
+  "type": "module",
+  "bin": {
+    "ctx": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ai",
+    "context",
+    "claude",
+    "cursor",
+    "copilot",
+    "codex",
+    "windsurf",
+    "cline",
+    "aider",
+    "cli",
+    "developer-tools",
+    "ai-coding",
+    "context-switching"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0",
+    "@types/node": "^22.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
