@@ -27,7 +27,7 @@ You're deep in a coding session with Claude Code. **Rate limit hits.** You can't
 
 Working on multiple projects side by side? Every tool has its own config format. Context doesn't transfer.
 
-**45% of developers spend more time debugging AI code than expected**, largely due to context loss.
+**76% of developers now use 2+ AI coding tools** (Stack Overflow 2025). Every switch between them means lost context.
 
 ## The Solution
 
@@ -233,39 +233,41 @@ Fast startup. No native compilation. No bloat.
 
 ## Why Not Just Use Ruler?
 
-[Ruler](https://github.com/intellectronica/ruler) is a great tool for syncing rules across AI coding tools. But it only handles **rules** — static project conventions.
+[Ruler](https://github.com/intellectronica/ruler) (~2,500 stars) is excellent for syncing rules and coding conventions across AI tools. If that's your main need, use it — it does that job well.
 
-`ai-context-bridge` goes further:
+`ctx` solves a **different problem**: what happens when your AI session dies mid-work and you need to resume in another tool in 10 seconds.
 
-| Feature | ai-context-bridge | Ruler |
-|---------|------------------|-------|
-| Rules sync | Yes | Yes |
-| **Session context** (what you're working on, decisions made) | **Yes** | No |
-| **Survives rate limits** (pre-generated resume prompts) | **Yes** | No |
-| **Autonomous** (git hooks, zero commands needed) | **Yes** | No |
-| **External storage** (zero files in public repos) | **Yes** | No |
-| **Multi-project dashboard** | **Yes** | No |
-| **Token-aware compilation** (respects per-tool limits) | **Yes** | No |
+| What you need | Ruler | ctx |
+|---------------|-------|-----|
+| Sync rules across tools | **Yes — Ruler's strength** | Yes |
+| Save session context (branch, work-in-progress, decisions) | No | **Yes** |
+| Survive rate limits (pre-saved, no command needed) | No | **Yes** |
+| Autonomous (git hooks, zero workflow change) | No | **Yes** |
+| External storage (zero files in public repos) | No | **Yes** |
+| Multi-project dashboard | No | **Yes** |
 | Zero dependencies | Yes | Yes |
 | Tools supported | 11 | 11 |
 
-**Use Ruler if** you just need to sync coding rules. **Use ctx if** you switch between tools mid-session, hit rate limits, or work on multiple projects.
+**Use Ruler** to keep your tools configured the same way. **Use ctx** to keep your work-in-progress transferable between tools. They complement each other.
 
 ## Comparison
 
-| Feature | ctx | Ruler | ai-rulez | ContextPilot | SaveContext |
-|---------|-----|-------|----------|-------------|------------|
-| Autonomous auto-save | Yes | No | No | No | No |
-| Survives rate limits | Yes | No | No | No | No |
-| Session handoff | Yes | No | No | Basic | Yes |
-| External storage (public repos) | Yes | No | No | No | No |
-| Multi-project dashboard | Yes | No | No | No | No |
-| Token-aware compilation | Yes | No | No | No | No |
+Different tools solve different parts of the AI context problem:
+
+| What it does | ctx | Ruler | ai-rulez | ContextPilot | SaveContext |
+|--------------|-----|-------|----------|-------------|------------|
+| Rules sync | Yes | **Yes** | **Yes** | Yes | No |
+| Session context | **Yes** | No | No | Basic | Yes |
+| Survives rate limits (pre-saved) | **Yes** | No | No | No | No |
+| Autonomous (git hooks) | **Yes** | No | No | No | No |
+| External storage (public repos) | **Yes** | No | No | No | No |
+| Multi-project dashboard | **Yes** | No | No | No | No |
 | Zero dependencies | Yes | Yes | No | No | No |
-| Quick-switch command | `ctx switch` | No | No | No | No |
-| Rules sync | Yes | Yes | Yes | Yes | No |
-| Tools supported | 11 | 11 | 18 | 5 | 4 |
-| Works without git | Yes | No | No | No | No |
+| Tools supported | 11 | 11 | **18** | 5 | 4 |
+
+**Where others are stronger:** ai-rulez supports more tools (18 vs 11). Ruler has a larger community (~2,500 stars) and battle-tested rule syncing. ContextPilot integrates with VS Code natively.
+
+**Where ctx is different:** Autonomous session saving via git hooks, rate-limit survival, and external storage for public repos. These are problems the other tools weren't designed to solve.
 
 ## Development
 
