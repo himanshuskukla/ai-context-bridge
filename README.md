@@ -10,6 +10,7 @@
     <a href="https://github.com/himanshuskukla/ai-context-bridge/actions"><img src="https://github.com/himanshuskukla/ai-context-bridge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
     <a href="https://github.com/himanshuskukla/ai-context-bridge/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/ai-context-bridge.svg" alt="license"></a>
     <img src="https://img.shields.io/badge/dependencies-0-brightgreen" alt="zero dependencies">
+    <a href="https://himanshushukla.com/blog/i-built-a-cli-that-saves-ai-coding-context"><img src="https://img.shields.io/badge/read-blog%20post-blue" alt="blog post"></a>
   </p>
 </p>
 
@@ -268,6 +269,12 @@ Different tools solve different parts of the AI context problem:
 **Where others are stronger:** ai-rulez supports more tools (18 vs 11). Ruler has a larger community (~2,500 stars) and battle-tested rule syncing. ContextPilot integrates with VS Code natively.
 
 **Where ctx is different:** Autonomous session saving via git hooks, rate-limit survival, and external storage for public repos. These are problems the other tools weren't designed to solve.
+
+## The Story Behind ctx
+
+Read the full story of why and how I built this: **[I Built a CLI That Saves Your AI Coding Context When Rate Limits Hit](https://himanshushukla.com/blog/i-built-a-cli-that-saves-ai-coding-context)**
+
+Covers the 2 AM rate limit that started it all, the engineering challenges (token-aware compilation, 11 adapter formats), accidentally pushing private session data to a public repo (which led to `--external` mode), and what it's like building a developer tool through vibe coding.
 
 ## Development
 
